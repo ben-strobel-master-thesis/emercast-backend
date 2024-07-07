@@ -1,0 +1,87 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.1'
+	id 'io.spring.dependency-management' version '1.1.5'
+	id "org.openapi.generator" version "6.6.0"
+}
+
+group = 'com.strobel.emercast'
+version = '0.0.1-SNAPSHOT'
+
+springBoot {
+	mainClass = "com.strobel.emercast.backend.EmercastBackendApplication"
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation "org.springframework.boot:spring-boot-starter-data-mongodb"
+	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.2.0'
+	implementation 'org.mongodb:mongodb-driver-sync:4.11.1'
+	implementation 'org.mongodb:mongodb-driver-core:4.11.1'
+
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+	implementation 'io.swagger:swagger-annotations:1.6.8'
+	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.0.2'
+	implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+openApiGenerate {
+	generatorName.set("spring")
+	outputDir.set("$rootDir/generated")
+	inputSpec.set("$rootDir/api-specs/api-spec.yml")
+	apiPackage.set("com.openapi.gen.springboot.api")
+	modelPackage.set("com.openapi.gen.springboot.dto")
+	configOptions.set([
+			serializableModel: "true",
+			useJakartaEe: "true",
+			useSpringBoot3: "true",
+			useSwaggerUI: "false",
+			interfaceOnly: "false",
+			documentationProvider: "none",
+			performBeanValidation: "true",
+			useBeanValidation: "true",
+			dateLibrary: "java8"
+	])
+	typeMappings.set([
+			"string+ObjectId": "UUID"
+	])
+}
+
+compileJava {
+	dependsOn "openApiGenerate"
+}
+
+clean {
+	delete "generated"
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs "src/main/java"
+			srcDirs "generated/src/main/java"
+		}
+	}
+	test {
+		java {
+			srcDirs "src/test/java"
+		}
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
