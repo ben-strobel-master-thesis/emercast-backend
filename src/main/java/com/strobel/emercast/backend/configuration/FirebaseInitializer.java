@@ -18,9 +18,6 @@ public class FirebaseInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseInitializer.class);
 
-    @Value("${mugon.emulator.mode}")
-    private Boolean emulatorMode;
-
     @PostConstruct
     public void onStart() {
         logger.info("Initializing Firebase App...");
@@ -39,18 +36,13 @@ public class FirebaseInitializer {
 
             // This isn't needed for dev because the "FIRESTORE_EMULATOR_HOST" and "FIREBASE_AUTH_EMULATOR_HOST" so local emulator version of firebase services are used
             // For production there needs to be a "firebase-service-credentials.json" file in the resource folder that can be obtained from the firebase web interface
-            if(!emulatorMode) {
-                InputStream serviceAccount = FirebaseInitializer.class.getResourceAsStream("/firebase-service-credentials.json");
-                if(serviceAccount == null) {
-                    throw new AssertionError("Error: firebase-service-credentials.json is missing from resources. Get it from firebase web interface");
-                }
-                GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
-                firebaseOptionBuilder.setCredentials(credentials);
-                logger.info("Connected to production to production firebase project");
-            } else  {
-                firebaseOptionBuilder.setCredentials(new EmulatorCredentials()).setProjectId("mugon-fcb02");
-                logger.info("Connected to emulator firebase project");
+            InputStream serviceAccount = FirebaseInitializer.class.getResourceAsStream("/firebase-service-credentials.json");
+            if(serviceAccount == null) {
+                throw new AssertionError("Error: firebase-service-credentials.json is missing from resources. Get it from firebase web interface");
             }
+            GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
+            firebaseOptionBuilder.setCredentials(credentials);
+            logger.info("Connected to production to production firebase project");
 
             FirebaseApp.initializeApp(firebaseOptionBuilder.build());
         }
