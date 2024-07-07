@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+/generated/
+src/main/resources/firebase-service-credentials.json
+src/test/resources/firebase-service-credentials.json
