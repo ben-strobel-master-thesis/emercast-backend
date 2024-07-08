@@ -5,9 +5,7 @@ import com.openapi.gen.springboot.dto.BroadcastMessageDTO;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.UUID;
 
 @Document(collection = "broadcast_message")
@@ -122,8 +120,8 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
     public BroadcastMessageDTO toOpenAPI() {
         return new BroadcastMessageDTO(
             this.getId().toOpenAPI(),
-            this.getCreated().atOffset(OffsetDateTime.now().getOffset()),
-            this.getModified().atOffset(OffsetDateTime.now().getOffset()),
+            this.getCreated().getEpochSecond(),
+            this.getModified().getEpochSecond(),
             this.getLatitude(),
             this.getLongitude(),
             this.getRadius(),
