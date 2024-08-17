@@ -1,4 +1,4 @@
-package com.strobel.emercast.backend.db.models;
+package com.strobel.emercast.backend.db.models.base;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;

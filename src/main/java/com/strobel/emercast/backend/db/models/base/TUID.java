@@ -1,4 +1,4 @@
-package com.strobel.emercast.backend.db.models;
+package com.strobel.emercast.backend.db.models.base;
 
 import java.io.Serial;
 import java.util.UUID;

@@ -2,6 +2,8 @@ package com.strobel.emercast.backend.db.models;
 
 import com.openapi.gen.springboot.dto.AuthorityDTO;
 import com.openapi.gen.springboot.dto.BroadcastMessageDTO;
+import com.strobel.emercast.backend.db.models.base.TUID;
+import com.strobel.emercast.backend.db.models.base.UuidEntity;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -28,6 +30,7 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
     }
     private Instant created;
     private Instant modified;
+    private Boolean internalMessage;
     private Instant forwardUntil;
     private Float latitude;
     private Float longitude;
@@ -117,11 +120,20 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         this.message = message;
     }
 
+    public Boolean getInternalMessage() {
+        return internalMessage;
+    }
+
+    public void setInternalMessage(Boolean internalMessage) {
+        this.internalMessage = internalMessage;
+    }
+
     public BroadcastMessageDTO toOpenAPI() {
         return new BroadcastMessageDTO(
             this.getId().toOpenAPI(),
             this.getCreated().getEpochSecond(),
             this.getModified().getEpochSecond(),
+            this.getForwardUntil().getEpochSecond(),
             this.getLatitude(),
             this.getLongitude(),
             this.getRadius(),
