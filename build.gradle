@@ -24,10 +24,10 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation "org.springframework.boot:spring-boot-starter-data-mongodb"
 	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.2.0'
 	implementation 'org.mongodb:mongodb-driver-sync:4.11.1'
-	implementation 'org.mongodb:mongodb-driver-core:4.11.1'
 
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
 	implementation 'io.swagger:swagger-annotations:1.6.8'

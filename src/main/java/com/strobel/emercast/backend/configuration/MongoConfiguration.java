@@ -1,6 +1,6 @@
 package com.strobel.emercast.backend.configuration;
 
-import com.strobel.emercast.backend.db.models.TUID;
+import com.strobel.emercast.backend.db.models.base.TUID;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;

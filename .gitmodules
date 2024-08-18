@@ -1,4 +1,4 @@
 [submodule "api-specs"]
 	path = api-specs
-	url = https://github.com/ben-strobel-master-thesis/emercast-api
+	url = ../emercast-api.git
 	branch = main
