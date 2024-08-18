@@ -18,7 +18,7 @@ public class BroadcastMessageService {
         this.cloudMessagingService = cloudMessagingService;
     }
 
-    public BroadcastMessage sendBroadcastMessage(Float latitude, Float longitude, Float radius, String category, Integer severity, String title, String messageContent) {
+    public BroadcastMessage sendBroadcastMessage(Float latitude, Float longitude, Integer radius, String category, Integer severity, String title, String messageContent) {
         var message = BroadcastMessage.newInstance(latitude, longitude, radius, category, severity, title, messageContent);
         this.broadcastMessageRepository.save(message);
         cloudMessagingService.sendCloudMessagingMessage(message);

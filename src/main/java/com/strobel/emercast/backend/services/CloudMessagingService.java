@@ -12,12 +12,17 @@ public class CloudMessagingService {
         var firebaseMessaging = FirebaseMessaging.getInstance();
 
         Message message = Message.builder()
+                .putData("id", broadcastMessage.getId().toString())
                 .putData("title", broadcastMessage.getTitle())
-                .putData("content", broadcastMessage.getTitle())
+                .putData("content", broadcastMessage.getMessage())
                 .putData("category", broadcastMessage.getCategory())
                 .putData("severity", broadcastMessage.getSeverity().toString())
-                .putData("created", broadcastMessage.getCreated().toString())
-                .putData("forwardUntil", broadcastMessage.getForwardUntil().toString())
+                .putData("created", ""+broadcastMessage.getCreated().getEpochSecond())
+                .putData("modified", ""+broadcastMessage.getModified().getEpochSecond())
+                .putData("latitude", broadcastMessage.getLatitude().toString())
+                .putData("longitude", broadcastMessage.getLongitude().toString())
+                .putData("radius", broadcastMessage.getRadius().toString())
+                .putData("forwardUntil", ""+broadcastMessage.getForwardUntil().getEpochSecond())
                 .setTopic("test")
                 .build();
 

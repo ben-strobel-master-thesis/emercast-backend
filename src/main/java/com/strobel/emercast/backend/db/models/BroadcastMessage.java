@@ -11,7 +11,7 @@ import java.util.UUID;
 @Document(collection = "broadcast_message")
 public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
 
-    public static BroadcastMessage newInstance(Float latitude, Float longitude, Float radius, String category, Integer severity, String title, String messageContent) {
+    public static BroadcastMessage newInstance(Float latitude, Float longitude, Integer radius, String category, Integer severity, String title, String messageContent) {
         var message = new BroadcastMessage();
         message.setId(new TUID<>(UUID.randomUUID()));
         message.setCreated(Instant.now());
@@ -31,7 +31,7 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
     private Instant forwardUntil;
     private Float latitude;
     private Float longitude;
-    private Float radius;
+    private Integer radius;
     private String category;
     private Integer severity;
     private String title;
@@ -77,11 +77,11 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         this.longitude = longitude;
     }
 
-    public Float getRadius() {
+    public Integer getRadius() {
         return radius;
     }
 
-    public void setRadius(Float radius) {
+    public void setRadius(Integer radius) {
         this.radius = radius;
     }
 
@@ -121,6 +121,7 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         return new BroadcastMessageDTO(
             this.getId().toOpenAPI(),
             this.getCreated().getEpochSecond(),
+            this.getForwardUntil().getEpochSecond(),
             this.getModified().getEpochSecond(),
             this.getLatitude(),
             this.getLongitude(),
