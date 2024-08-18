@@ -3,7 +3,9 @@ package com.strobel.emercast.backend.services;
 import com.strobel.emercast.backend.db.models.authority.Authority;
 import com.strobel.emercast.backend.db.models.authority.JurisdictionMarker;
 import com.strobel.emercast.backend.db.models.base.TUID;
+import com.strobel.emercast.backend.db.models.enums.SystemMessageKindEnum;
 import com.strobel.emercast.backend.db.repositories.AuthorityRepository;
+import com.strobel.emercast.backend.lib.PaginationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.*;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -29,6 +32,9 @@ public class AuthorityService {
 
     @Autowired
     AuthorityRepository authorityRepository;
+
+    @Autowired
+    BroadcastMessageService broadcastMessageService;
 
     public static final UUID rootAuthorityUuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
@@ -53,19 +59,6 @@ public class AuthorityService {
         var authority = authorityRepository.findByLoginName(username);
         if(authority.isEmpty()) return false;
         return BCrypt.checkpw(password, authority.get().getPasswordHash());
-    }
-
-    public void renewAuthority() {
-        // TODO Compute new keypair
-        // TODO Sign new authority
-        // TODO Send AuthorityRevoked, and AuthorityIssued messages (should be sent in one broadcastmessage, so both always are received at the same time)
-    }
-
-    public void revokeAuthority(TUID<Authority> id) {
-        var authority = authorityRepository.findById(id);
-        if(authority.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        
-        // TODO Send AuthorityRevoked
     }
 
     public Authority createAuthority(
@@ -96,8 +89,37 @@ public class AuthorityService {
         signAuthorityByParent(authority, parent.get());
 
         authority.setPath(computeAuthorityPath(authority));
+        broadcastMessageService.sendSystemBroadcastMessage(SystemMessageKindEnum.AUTHORITY_ISSUED, authority);
 
         return authorityRepository.save(authority);
+    }
+
+    public void revokeAuthority(TUID<Authority> id) {
+        var authority = authorityRepository.findById(id);
+        if(authority.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        var revocationTime = Instant.now();
+
+        PaginationUtils.doForEveryPage(
+                20,
+                (pageable) -> authorityRepository.findByPathContaining(id, pageable),
+                (page) -> {
+                    for (Authority a : page) {
+                        a.setRevoked(revocationTime);
+                    }
+                    authorityRepository.saveAll(page);
+                }
+        );
+
+        broadcastMessageService.sendSystemBroadcastMessage(
+                SystemMessageKindEnum.AUTHORITY_REVOKED,
+                authority.get()
+        );
+    }
+
+    public void renewAuthority() {
+        // TODO Compute new keypair
+        // TODO Sign new authority
+        // TODO Send AuthorityRevoked, and AuthorityIssued messages (should be sent in one broadcastmessage, so both always are received at the same time)
     }
 
     private void signAuthorityByParent(Authority authority, Authority parent) {

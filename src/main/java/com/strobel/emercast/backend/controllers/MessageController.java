@@ -22,7 +22,7 @@ public class MessageController implements MessageApi {
     public ResponseEntity<BroadcastMessageDTO> postBroadcastMessage(
             @Valid @RequestBody PostBroadcastMessageRequest postBroadcastMessageRequest
     ) {
-        var message = this.broadcastMessageService.sendBroadcastMessage(
+        var message = this.broadcastMessageService.sendPayloadBroadcastMessage(
           postBroadcastMessageRequest.getLatitude(),
           postBroadcastMessageRequest.getLongitude(),
           postBroadcastMessageRequest.getRadius(),

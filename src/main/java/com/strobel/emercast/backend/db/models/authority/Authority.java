@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Document(collection = "authorities")
@@ -51,6 +52,7 @@ public class Authority extends UuidEntity<Authority> {
     private Instant created;
     private TUID<Authority> createdBy;
     private String creatorSignature;
+    private Optional<Instant> revoked;
 
     // Not being sent to clients, is redundant data, is computed in advance to make other work more efficient
     private List<TUID<Authority>> path;
@@ -191,5 +193,17 @@ public class Authority extends UuidEntity<Authority> {
 
     public void setPath(List<TUID<Authority>> path) {
         this.path = path;
+    }
+
+    public Optional<Instant> getRevoked() {
+        return revoked;
+    }
+
+    public boolean isRevoked() {
+        return revoked.isPresent();
+    }
+
+    public void setRevoked(Instant revoked) {
+        this.revoked = revoked == null ? Optional.empty() : Optional.of(revoked);
     }
 }

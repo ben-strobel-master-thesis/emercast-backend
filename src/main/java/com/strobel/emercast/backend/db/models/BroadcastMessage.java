@@ -26,11 +26,12 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         message.setSeverity(severity);
         message.setTitle(title);
         message.setMessage(messageContent);
+        message.setSystemMessage(false);
         return message;
     }
     private Instant created;
     private Instant modified;
-    private Boolean internalMessage;
+    private Boolean systemMessage;
     private Instant forwardUntil;
     private Float latitude;
     private Float longitude;
@@ -120,12 +121,12 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         this.message = message;
     }
 
-    public Boolean getInternalMessage() {
-        return internalMessage;
+    public Boolean getSystemMessage() {
+        return systemMessage;
     }
 
-    public void setInternalMessage(Boolean internalMessage) {
-        this.internalMessage = internalMessage;
+    public void setSystemMessage(Boolean systemMessage) {
+        this.systemMessage = systemMessage;
     }
 
     public BroadcastMessageDTO toOpenAPI() {
@@ -133,6 +134,7 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
             this.getId().toOpenAPI(),
             this.getCreated().getEpochSecond(),
             this.getModified().getEpochSecond(),
+            this.getSystemMessage(),
             this.getForwardUntil().getEpochSecond(),
             this.getLatitude(),
             this.getLongitude(),
