@@ -23,6 +23,8 @@ public class CloudMessagingService {
                 .putData("longitude", broadcastMessage.getLongitude().toString())
                 .putData("radius", broadcastMessage.getRadius().toString())
                 .putData("forwardUntil", ""+broadcastMessage.getForwardUntil().getEpochSecond())
+                .putData("issuedAuthorityId", ""+broadcastMessage.getIssuedAuthorityId())
+                .putData("issuerSignature", broadcastMessage.getIssuerSignature())
                 .setTopic("test")
                 .build();
 

@@ -1,5 +1,6 @@
 package com.strobel.emercast.backend.services;
 
+import com.strobel.emercast.backend.db.models.BroadcastMessage;
 import com.strobel.emercast.backend.db.models.authority.Authority;
 import com.strobel.emercast.backend.db.models.authority.JurisdictionMarker;
 import com.strobel.emercast.backend.db.models.base.TUID;
@@ -89,7 +90,7 @@ public class AuthorityService {
         signAuthorityByParent(authority, parent.get());
 
         authority.setPath(computeAuthorityPath(authority));
-        broadcastMessageService.sendSystemBroadcastMessage(SystemMessageKindEnum.AUTHORITY_ISSUED, authority);
+        broadcastMessageService.sendSystemBroadcastMessage(this, SystemMessageKindEnum.AUTHORITY_ISSUED, authority);
 
         return authorityRepository.save(authority);
     }
@@ -101,7 +102,7 @@ public class AuthorityService {
 
         PaginationUtils.doForEveryPage(
                 20,
-                (pageable) -> authorityRepository.findByPathContaining(id, pageable),
+                (pageable) -> authorityRepository.findByPathContainingSortedByPathIndex(id, false, pageable),
                 (page) -> {
                     for (Authority a : page) {
                         a.setRevoked(revocationTime);
@@ -111,15 +112,56 @@ public class AuthorityService {
         );
 
         broadcastMessageService.sendSystemBroadcastMessage(
+                this,
                 SystemMessageKindEnum.AUTHORITY_REVOKED,
                 authority.get()
         );
     }
 
-    public void renewAuthority() {
+    public void renewAuthority(Authority authority) {
+
+        revokeAuthority(authority.getId());
+
+        PaginationUtils.doForEveryPagedItem(
+                20,
+                (pageable -> authorityRepository.findByPathContainingSortedByPathIndex(authority.getId(), true, pageable)),
+                (item) -> {
+                    var parent = authorityRepository.findById(item.getCreatedBy());
+                    if(parent.isEmpty()) return;
+                    createAuthority(
+                            item.getId().toOpenAPI(),
+                            item.getLoginName(),
+                            item.getPasswordHash(),
+                            item.getCreatedBy(),
+                            item.getPublicName(),
+                            item.getJurisdictionDescription(),
+                            item.getJurisdictionMarkers()
+                    );
+                }
+        );
         // TODO Compute new keypair
         // TODO Sign new authority
         // TODO Send AuthorityRevoked, and AuthorityIssued messages (should be sent in one broadcastmessage, so both always are received at the same time)
+    }
+
+    public void signBroadcastMessageWithRootCertificate(BroadcastMessage broadcastMessage) {
+        var rootAuthority = authorityRepository.findById(new TUID<>(rootAuthorityUuid));
+        if(rootAuthority.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        signBroadcastMessage(rootAuthority.get(), broadcastMessage);
+    }
+
+    public void signBroadcastMessage(Authority authority, BroadcastMessage broadcastMessage) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            var messageHash = md.digest(broadcastMessage.getMessageBytesForDigest());
+            var cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, authority.getPrivateKey());
+            byte[] signedMessageHash = cipher.doFinal(messageHash);
+            broadcastMessage.setIssuedAuthorityId(authority.getId());
+            broadcastMessage.setIssuerSignature(Base64.getEncoder().encodeToString(signedMessageHash));
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void signAuthorityByParent(Authority authority, Authority parent) {

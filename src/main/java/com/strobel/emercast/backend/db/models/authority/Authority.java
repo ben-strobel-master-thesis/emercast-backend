@@ -28,6 +28,8 @@ public class Authority extends UuidEntity<Authority> {
         var authority = new Authority();
         if(uuid != null) {
             authority.id = new TUID<>(uuid);
+        } else {
+            authority.id = new TUID<>(UUID.randomUUID());
         }
         authority.loginName = loginName;
         authority.passwordHash = new BCryptPasswordEncoder().encode(password.subSequence(0, password.length()));
@@ -52,7 +54,7 @@ public class Authority extends UuidEntity<Authority> {
     private Instant created;
     private TUID<Authority> createdBy;
     private String creatorSignature;
-    private Optional<Instant> revoked;
+    private Instant revoked;
 
     // Not being sent to clients, is redundant data, is computed in advance to make other work more efficient
     private List<TUID<Authority>> path;
@@ -195,15 +197,15 @@ public class Authority extends UuidEntity<Authority> {
         this.path = path;
     }
 
-    public Optional<Instant> getRevoked() {
+    public Instant getRevoked() {
         return revoked;
     }
 
     public boolean isRevoked() {
-        return revoked.isPresent();
+        return revoked != null;
     }
 
     public void setRevoked(Instant revoked) {
-        this.revoked = revoked == null ? Optional.empty() : Optional.of(revoked);
+        this.revoked = revoked;
     }
 }
