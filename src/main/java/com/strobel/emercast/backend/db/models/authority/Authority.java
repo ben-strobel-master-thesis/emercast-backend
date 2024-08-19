@@ -38,7 +38,7 @@ public class Authority extends UuidEntity<Authority> {
         authority.publicName = publicName;
         authority.jurisdictionDescription = jurisdictionDescription;
         authority.jurisdictionMarkers = jurisdictionMarkers;
-        authority.keyPairValidUntil = Instant.now().plus(1, ChronoUnit.YEARS);
+        authority.keyPairValidUntil = Instant.now().plus(365, ChronoUnit.DAYS);
         authority.publicKeyBase64 = publicKeyBase64;
         authority.privateKeyBase64 = privateKeyBase64;
 

@@ -93,7 +93,7 @@ public class AuthorityService {
         );
 
         if(uuid.equals(rootAuthorityUuid)) {
-            authority.setKeyPairValidUntil(Instant.now().plus(1000, ChronoUnit.YEARS));
+            authority.setKeyPairValidUntil(Instant.now().plus(1000*365, ChronoUnit.DAYS));
         }
 
         var parent = uuid.equals(rootAuthorityUuid) ? Optional.of(authority) : authorityRepository.findById(createdBy);
@@ -101,9 +101,10 @@ public class AuthorityService {
         signAuthorityByParent(authority, parent.get());
 
         authority.setPath(computeAuthorityPath(authority));
+        var result = authorityRepository.save(authority);
         broadcastMessageService.sendSystemBroadcastMessage(this, SystemMessageKindEnum.AUTHORITY_ISSUED, authority);
 
-        return authorityRepository.save(authority);
+        return result;
     }
 
     public void revokeAuthority(TUID<Authority> id) {
@@ -154,7 +155,7 @@ public class AuthorityService {
 
     public void renewExpiringAuthorities() {
 
-        var timestampInAMonth = Instant.now().plus(1, ChronoUnit.MONTHS);
+        var timestampInAMonth = Instant.now().plus(30, ChronoUnit.DAYS);
 
         var first = true;
         Optional<Authority> currentAuthority = Optional.empty();
@@ -203,7 +204,7 @@ public class AuthorityService {
     private List<TUID<Authority>> computeAuthorityPath(Authority authority) {
         var path = new ArrayList<TUID<Authority>>();
         var current = authority;
-        while(!current.getCreatedBy().equals(rootAuthorityUuid)) {
+        while(!current.getId().equals(new TUID<>(rootAuthorityUuid))) {
             var parent = authorityRepository.findById(current.getCreatedBy());
             if(parent.isEmpty()) return new ArrayList<>();
             path.add(parent.get().getId());

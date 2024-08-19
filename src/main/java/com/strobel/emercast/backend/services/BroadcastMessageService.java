@@ -33,7 +33,7 @@ public class BroadcastMessageService {
 
     public BroadcastMessage sendSystemBroadcastMessage(AuthorityService authorityService, SystemMessageKindEnum kind, Authority authority) {
         // TODO create json message
-        var message = BroadcastMessage.newInstance(null, null, null, "system", 0, kind.name(), "TODO");
+        var message = BroadcastMessage.newInstance(0f, 0f, 0, "system", 0, kind.name(), "TODO");
         message.setSystemMessage(true);
         authorityService.signBroadcastMessageWithRootCertificate(message);
         this.broadcastMessageRepository.save(message);
