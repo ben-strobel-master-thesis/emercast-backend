@@ -1,5 +1,8 @@
 package com.strobel.emercast.backend.services;
 
+import com.google.gson.Gson;
+import com.openapi.gen.springboot.dto.SystemBroadcastMessageAuthorityIssuedPayloadDTO;
+import com.openapi.gen.springboot.dto.SystemBroadcastMessageAuthorityRevokedPayloadDTO;
 import com.strobel.emercast.backend.db.models.BroadcastMessage;
 import com.strobel.emercast.backend.db.models.authority.Authority;
 import com.strobel.emercast.backend.db.models.enums.SystemMessageKindEnum;
@@ -8,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
 
 @Service
 public class BroadcastMessageService {
@@ -31,9 +36,31 @@ public class BroadcastMessageService {
         return message;
     }
 
-    public BroadcastMessage sendSystemBroadcastMessage(AuthorityService authorityService, SystemMessageKindEnum kind, Authority authority) {
-        // TODO create json message
-        var message = BroadcastMessage.newInstance(0f, 0f, 0, "system", 0, kind.name(), "TODO");
+    public BroadcastMessage sendSystemBroadcastAuthorityRevokedMessage(AuthorityService authorityService, Authority authority) {
+        var gson = new Gson();
+
+        var broadcastUnderJurisdictionWithYoungestForwardUntil = broadcastMessageRepository.findUnderJurisdictionWithYoungestForwardUntil(authority.getId());
+        var canBeDeletedFrom = broadcastUnderJurisdictionWithYoungestForwardUntil.isPresent() ?
+                broadcastUnderJurisdictionWithYoungestForwardUntil.get().getForwardUntil() :
+                Instant.now();
+
+        var payload = new SystemBroadcastMessageAuthorityRevokedPayloadDTO(
+                authority.getId().toOpenAPI(),
+                authority.getRevoked().getEpochSecond(),
+                canBeDeletedFrom.getEpochSecond()
+        );
+        var message = BroadcastMessage.newInstance(0f, 0f, 0, "system", 0, SystemMessageKindEnum.AUTHORITY_REVOKED.name(), gson.toJson(payload));
+        message.setSystemMessage(true);
+        authorityService.signBroadcastMessageWithRootCertificate(message);
+        this.broadcastMessageRepository.save(message);
+        cloudMessagingService.sendCloudMessagingMessage(message);
+        return message;
+    }
+
+    public BroadcastMessage sendSystemBroadcastAuthorityIssuedMessage(AuthorityService authorityService, Authority authority) {
+        var gson = new Gson();
+        var payload = new SystemBroadcastMessageAuthorityIssuedPayloadDTO(authority.toOpenAPI());
+        var message = BroadcastMessage.newInstance(0f, 0f, 0, "system", 0, SystemMessageKindEnum.AUTHORITY_ISSUED.name(), gson.toJson(payload));
         message.setSystemMessage(true);
         authorityService.signBroadcastMessageWithRootCertificate(message);
         this.broadcastMessageRepository.save(message);

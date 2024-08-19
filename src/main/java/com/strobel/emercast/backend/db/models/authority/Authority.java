@@ -1,7 +1,10 @@
 package com.strobel.emercast.backend.db.models.authority;
 
+import com.openapi.gen.springboot.dto.AuthorityDTO;
+import com.openapi.gen.springboot.dto.JurisdictionMarkerDTO;
 import com.strobel.emercast.backend.db.models.base.TUID;
 import com.strobel.emercast.backend.db.models.base.UuidEntity;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,6 +23,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Document(collection = "authorities")
 public class Authority extends UuidEntity<Authority> {
@@ -72,9 +76,9 @@ public class Authority extends UuidEntity<Authority> {
         var builder = new StringBuilder();
         builder.append(created.toString());
         builder.append(createdBy.toString());
-        builder.append(keyPairValidUntil.toString());
-        jurisdictionMarkers.forEach(m -> builder.append(m.toString()));
         builder.append(publicName);
+        jurisdictionMarkers.forEach(m -> builder.append(m.toString()));
+        builder.append(keyPairValidUntil.toString());
         builder.append(publicKeyBase64);
         return builder.toString().getBytes(StandardCharsets.UTF_8);
     }
@@ -207,5 +211,17 @@ public class Authority extends UuidEntity<Authority> {
 
     public void setRevoked(Instant revoked) {
         this.revoked = revoked;
+    }
+
+    public AuthorityDTO toOpenAPI() {
+        return new AuthorityDTO(
+                this.getId().toOpenAPI(),
+                this.getCreated().getEpochSecond(),
+                this.getCreatedBy().toOpenAPI(),
+                this.getPublicName(),
+                this.getJurisdictionMarkers().stream().map(JurisdictionMarker::toOpenAPI).collect(Collectors.toList()),
+                this.getKeyPairValidUntil().getEpochSecond(),
+                this.getPublicKeyBase64()
+        );
     }
 }

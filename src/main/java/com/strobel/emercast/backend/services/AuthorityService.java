@@ -102,7 +102,7 @@ public class AuthorityService {
 
         authority.setPath(computeAuthorityPath(authority));
         var result = authorityRepository.save(authority);
-        broadcastMessageService.sendSystemBroadcastMessage(this, SystemMessageKindEnum.AUTHORITY_ISSUED, authority);
+        broadcastMessageService.sendSystemBroadcastAuthorityIssuedMessage(this, authority);
 
         return result;
     }
@@ -123,9 +123,8 @@ public class AuthorityService {
                 }
         );
 
-        broadcastMessageService.sendSystemBroadcastMessage(
+        broadcastMessageService.sendSystemBroadcastAuthorityRevokedMessage(
                 this,
-                SystemMessageKindEnum.AUTHORITY_REVOKED,
                 authority.get()
         );
     }
