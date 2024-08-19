@@ -70,4 +70,8 @@ public class JurisdictionMarker {
                 this.getRadiusMeters().intValue()
         );
     }
+
+    public static JurisdictionMarker fromOpenAPI(JurisdictionMarkerDTO dto) {
+        return newCircleMarker(dto.getLatitude().doubleValue(), dto.getLongitude().doubleValue(), dto.getRadiusMeter().longValue());
+    }
 }

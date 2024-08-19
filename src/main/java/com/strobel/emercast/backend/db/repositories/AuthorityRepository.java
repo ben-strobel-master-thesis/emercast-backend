@@ -23,5 +23,7 @@ public interface AuthorityRepository extends MongoRepository<Authority, TUID<Aut
     })
     List<Authority> findByPathContainingSortedByPathIndex(TUID<Authority> id, boolean revoked, Pageable pageable);
 
+    List<Authority> findAllByRevokedIsNull(Pageable pageable);
+
     Optional<Authority> findByKeyPairValidUntilBefore(Instant timestamp);
 }

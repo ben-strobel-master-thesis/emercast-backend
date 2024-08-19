@@ -30,11 +30,7 @@ public class Authority extends UuidEntity<Authority> {
 
     public static Authority newInstance(UUID uuid, String loginName, String password, TUID<Authority> createdBy, String publicName, String jurisdictionDescription, List<JurisdictionMarker> jurisdictionMarkers, String publicKeyBase64, String privateKeyBase64) {
         var authority = new Authority();
-        if(uuid != null) {
-            authority.id = new TUID<>(uuid);
-        } else {
-            authority.id = new TUID<>(UUID.randomUUID());
-        }
+        authority.id = new TUID<>(uuid);
         authority.loginName = loginName;
         authority.passwordHash = new BCryptPasswordEncoder().encode(password.subSequence(0, password.length()));
         authority.created = Instant.now();
@@ -73,6 +69,10 @@ public class Authority extends UuidEntity<Authority> {
     private String privateKeyBase64;
 
     public byte[] getMessageBytesForDigest() {
+        return getMessageStringForDigest().getBytes(StandardCharsets.UTF_8);
+    }
+
+    public String getMessageStringForDigest() {
         var builder = new StringBuilder();
         builder.append(created.toString());
         builder.append(createdBy.toString());
@@ -80,7 +80,7 @@ public class Authority extends UuidEntity<Authority> {
         jurisdictionMarkers.forEach(m -> builder.append(m.toString()));
         builder.append(keyPairValidUntil.toString());
         builder.append(publicKeyBase64);
-        return builder.toString().getBytes(StandardCharsets.UTF_8);
+        return builder.toString();
     }
 
     public String getJurisdictionDescription() {

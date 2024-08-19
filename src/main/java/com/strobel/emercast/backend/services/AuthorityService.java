@@ -12,8 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,6 +24,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -49,7 +52,7 @@ public class AuthorityService {
     @EventListener(ApplicationReadyEvent.class)
     public void createRootAuthorityIfNotExists() {
         var rootAuthority = authorityRepository.findById(new TUID<>(rootAuthorityUuid));
-        if(rootAuthority.isPresent()) return;
+        if (rootAuthority.isPresent()) return;
         var password = UUID.randomUUID().toString();
         logger.info("Root authority password: {}", password);
         createAuthority(
@@ -59,14 +62,19 @@ public class AuthorityService {
                 new TUID<>(rootAuthorityUuid),
                 "Root Authority",
                 "Root Authority",
-                List.of(JurisdictionMarker.newCircleMarker(-48.1351,11.5820, 20000000L))
+                List.of(JurisdictionMarker.newCircleMarker(-48.1351, 11.5820, 20000000L))
         );
     }
 
-    public boolean checkCredentials(String username, String password) {
-        var authority = authorityRepository.findByLoginName(username);
-        if(authority.isEmpty()) return false;
-        return BCrypt.checkpw(password, authority.get().getPasswordHash());
+    public Authority createAuthority(
+            String loginName,
+            String password,
+            TUID<Authority> createdBy,
+            String publicName,
+            String jurisdictionDescription,
+            List<JurisdictionMarker> jurisdictionMarkers
+    ) {
+        return createAuthority(UUID.randomUUID(), loginName, password, createdBy, publicName, jurisdictionDescription, jurisdictionMarkers);
     }
 
     public Authority createAuthority(
@@ -166,10 +174,45 @@ public class AuthorityService {
         }
     }
 
+    public List<Authority> getAuthorityListPage(int page, int pageSize) {
+        return authorityRepository.findAllByRevokedIsNull(Pageable.ofSize(pageSize).withPage(page));
+    }
+
+    public String getAuthorityChainHash() {
+        // TODO Persist this to db this / don't recalculate on every request
+        var builder = new StringBuilder();
+        PaginationUtils.doForEveryPagedItem(
+                10,
+                authorityRepository::findAllByRevokedIsNull,
+                item -> builder.append(item.getMessageStringForDigest())
+        );
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            var messageHash = md.digest(builder.toString().getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(messageHash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void signBroadcastMessageWithRootCertificate(BroadcastMessage broadcastMessage) {
         var rootAuthority = authorityRepository.findById(new TUID<>(rootAuthorityUuid));
         if(rootAuthority.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         signBroadcastMessage(rootAuthority.get(), broadcastMessage);
+    }
+
+    public Optional<Authority> checkCredentials(String username, String password) {
+        var authority = authorityRepository.findByLoginName(username);
+        if(authority.isEmpty()) return Optional.empty();
+        if(BCrypt.checkpw(password, authority.get().getPasswordHash())) {
+            return authority;
+        }
+        return Optional.empty();
+    }
+
+    public Authority getCallingAuthority() {
+        var authority = authorityRepository.findById(username);
     }
 
     public void signBroadcastMessage(Authority authority, BroadcastMessage broadcastMessage) {

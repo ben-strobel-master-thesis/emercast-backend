@@ -1,6 +1,6 @@
 package com.strobel.emercast.backend.controllers;
 
-import com.openapi.gen.springboot.api.MessageApi;
+import com.openapi.gen.springboot.api.BroadcastMessageApi;
 import com.openapi.gen.springboot.dto.BroadcastMessageDTO;
 import com.openapi.gen.springboot.dto.PostBroadcastMessageRequest;
 import com.strobel.emercast.backend.services.AuthorityService;
@@ -12,13 +12,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller
-public class MessageController implements MessageApi {
+public class BroadcastMessageController implements BroadcastMessageApi {
 
     private final BroadcastMessageService broadcastMessageService;
 
     private final AuthorityService authorityService;
 
-    public MessageController(
+    public BroadcastMessageController(
             @Autowired BroadcastMessageService broadcastMessageService,
             @Autowired AuthorityService authorityService
     ) {
@@ -29,9 +29,11 @@ public class MessageController implements MessageApi {
     public ResponseEntity<BroadcastMessageDTO> postBroadcastMessage(
             @Valid @RequestBody PostBroadcastMessageRequest postBroadcastMessageRequest
     ) {
+        var callingAuthority = authorityService.getCallingAuthority();
+
         var message = this.broadcastMessageService.sendPayloadBroadcastMessage(
           authorityService,
-          null, // TODO Get authority of currently logged in authority
+          callingAuthority,
           postBroadcastMessageRequest.getLatitude(),
           postBroadcastMessageRequest.getLongitude(),
           postBroadcastMessageRequest.getRadius(),
