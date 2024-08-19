@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,10 +16,12 @@ public interface AuthorityRepository extends MongoRepository<Authority, TUID<Aut
     Optional<Authority> findByLoginName(String name);
 
     @Aggregation(pipeline = {
-            "{ '$match': { 'path': ?0 } }",
+            "{$match: {'path': ?0}}",
             "{$match: {$expr:  {$cond: [?1, {$ne: ['$revoked', null]}, {$eq: ['$revoked', null]}]}}}",
             "{$addFields:  {'pathIndex': {indexOfArray: ['$path', ?0]}}}",
-            "{$sort: { 'pathIndex': 1 } }"
+            "{$sort: { 'pathIndex': 1 }}"
     })
     List<Authority> findByPathContainingSortedByPathIndex(TUID<Authority> id, boolean revoked, Pageable pageable);
+
+    Optional<Authority> findByKeyPairValidUntilBefore(Instant timestamp);
 }

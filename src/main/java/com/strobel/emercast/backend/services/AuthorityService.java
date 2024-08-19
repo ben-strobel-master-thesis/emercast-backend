@@ -24,6 +24,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.*;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 @Service
@@ -85,6 +87,10 @@ public class AuthorityService {
                 keyPair.getSecond()
         );
 
+        if(uuid.equals(rootAuthorityUuid)) {
+            authority.setKeyPairValidUntil(Instant.now().plus(1000, ChronoUnit.YEARS));
+        }
+
         var parent = uuid.equals(rootAuthorityUuid) ? Optional.of(authority) : authorityRepository.findById(createdBy);
         if(parent.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         signAuthorityByParent(authority, parent.get());
@@ -139,9 +145,20 @@ public class AuthorityService {
                     );
                 }
         );
-        // TODO Compute new keypair
-        // TODO Sign new authority
-        // TODO Send AuthorityRevoked, and AuthorityIssued messages (should be sent in one broadcastmessage, so both always are received at the same time)
+    }
+
+    public void renewExpiringAuthorities() {
+
+        var timestampInAMonth = Instant.now().plus(1, ChronoUnit.MONTHS);
+
+        var first = true;
+        Optional<Authority> currentAuthority = Optional.empty();
+        while(first || currentAuthority.isPresent()) {
+            first = false;
+            currentAuthority = authorityRepository.findByKeyPairValidUntilBefore(timestampInAMonth);
+            if(currentAuthority.isEmpty()) continue;
+            renewAuthority(currentAuthority.get());
+        }
     }
 
     public void signBroadcastMessageWithRootCertificate(BroadcastMessage broadcastMessage) {
