@@ -25,7 +25,6 @@ import javax.crypto.NoSuchPaddingException;
 import java.security.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 @Service
@@ -33,11 +32,17 @@ public class AuthorityService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthorityService.class);
 
-    @Autowired
-    AuthorityRepository authorityRepository;
+    private final AuthorityRepository authorityRepository;
 
-    @Autowired
-    BroadcastMessageService broadcastMessageService;
+    private final BroadcastMessageService broadcastMessageService;
+
+    private AuthorityService(
+            @Autowired AuthorityRepository authorityRepository,
+            @Autowired BroadcastMessageService broadcastMessageService
+    ) {
+        this.authorityRepository = authorityRepository;
+        this.broadcastMessageService = broadcastMessageService;
+    }
 
     public static final UUID rootAuthorityUuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 

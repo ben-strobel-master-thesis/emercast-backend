@@ -19,11 +19,17 @@ public class JobService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
-    @Autowired
-    ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
-    @Autowired
-    RenewExpiringAuthoritiesJob renewExpiringAuthoritiesJob;
+    private final RenewExpiringAuthoritiesJob renewExpiringAuthoritiesJob;
+
+    private JobService(
+            @Autowired ApplicationContext applicationContext,
+            @Autowired RenewExpiringAuthoritiesJob renewExpiringAuthoritiesJob
+    ) {
+        this.applicationContext = applicationContext;
+        this.renewExpiringAuthoritiesJob = renewExpiringAuthoritiesJob;
+    }
 
     @Value("${emercast.run.job.id:}")
     private String runJobId;

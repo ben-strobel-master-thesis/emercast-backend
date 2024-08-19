@@ -11,11 +11,11 @@ import java.util.HashMap;
 @Service
 public class RenewExpiringAuthoritiesJob extends Job {
 
-    @Autowired
-    AuthorityService authorityService;
+    private final AuthorityService authorityService;
 
-    public RenewExpiringAuthoritiesJob() {
+    private RenewExpiringAuthoritiesJob(@Autowired AuthorityService authorityService) {
         super(JobTypeEnum.RenewExpiringAuthorities);
+        this.authorityService = authorityService;
     }
 
     @Override

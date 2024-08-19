@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run RenewExpiringAuthoritiesJob" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="dev" />
+    <envs>
+      <env name="emercast.run.job.id" value="RenewExpiringAuthorities" />
+    </envs>
+    <module name="backend.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.strobel.emercast.backend.EmercastBackendApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
