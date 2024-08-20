@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -21,13 +22,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Controller
 public class AuthorityController implements AuthorityApi, LoginApi {
 
     private final AuthorityService authorityService;
 
     private final JwtService jwtService;
 
-    private AuthorityController(@Autowired AuthorityService authorityService, @Autowired JwtService jwtService) {
+    public AuthorityController(@Autowired AuthorityService authorityService, @Autowired JwtService jwtService) {
         this.authorityService = authorityService;
         this.jwtService = jwtService;
     }

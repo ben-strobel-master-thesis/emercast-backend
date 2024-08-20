@@ -15,7 +15,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,12 +38,16 @@ public class AuthorityService {
 
     private final BroadcastMessageService broadcastMessageService;
 
+    private final JwtService jwtService;
+
     private AuthorityService(
             @Autowired AuthorityRepository authorityRepository,
-            @Autowired BroadcastMessageService broadcastMessageService
+            @Autowired BroadcastMessageService broadcastMessageService,
+            @Autowired JwtService jwtService
     ) {
         this.authorityRepository = authorityRepository;
         this.broadcastMessageService = broadcastMessageService;
+        this.jwtService = jwtService;
     }
 
     public static final UUID rootAuthorityUuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -212,7 +215,9 @@ public class AuthorityService {
     }
 
     public Authority getCallingAuthority() {
-        var authority = authorityRepository.findById(username);
+        var authority = authorityRepository.findById(jwtService.getCallingAuthorityId());
+        if(authority.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        return authority.get();
     }
 
     public void signBroadcastMessage(Authority authority, BroadcastMessage broadcastMessage) {

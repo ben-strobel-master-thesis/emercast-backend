@@ -1,30 +1,34 @@
-package com.mugon.backend.configurations;
+package com.strobel.emercast.backend.configuration;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
+import com.strobel.emercast.backend.filters.JwtAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(@Autowired JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
@@ -32,12 +36,6 @@ public class SecurityConfig {
 
     @Value("${emercast.cors.allowed.url}")
     private String corsAllowedUrl;
-
-    @Value("${emercast.jwt.private-key}")
-    private String jwtPrivateKey;
-
-    @Value("${emercast.jwt.expiration}")
-    private long jwtExpiration;
 
     @Bean
     public SecurityFilterChain configureJWT(HttpSecurity http) throws Exception {
@@ -52,27 +50,12 @@ public class SecurityConfig {
                     source.registerCorsConfiguration("/**", configuration);
                     cors.configurationSource(source);
                 })
-                .authorizeHttpRequests((auth) -> auth.anyRequest().authenticated())
-                //.authorizeHttpRequests((auth) -> auth.anyRequest().permitAll())
-                .httpBasic(Customizer.withDefaults())
-                .oauth2ResourceServer(config -> config.jwt((jwt) -> jwt.decoder(getDecoder())));
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/authority/hash", "/authority").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, SecurityContextPersistenceFilter.class)
+                .httpBasic(Customizer.withDefaults());
         return http.build();
-    }
-
-    public JwtDecoder getDecoder() {
-        return new JwtDecoder() {
-            @Override
-            public Jwt decode(String token) throws JwtException {
-                try {
-                    var decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
-                    var headers = new HashMap<String, Object>();
-                    headers.put("alg", "HS256");
-                    headers.put("typ", "JWT");
-                    return new Jwt(decodedToken.getUid(), null, null, headers, decodedToken.getClaims());
-                } catch (FirebaseAuthException e) {
-                    throw new JwtException(e.getMessage());
-                }
-            }
-        };
     }
 }
