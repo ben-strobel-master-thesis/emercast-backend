@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.3.1'
 	id 'io.spring.dependency-management' version '1.1.5'
 	id "org.openapi.generator" version "6.6.0"
+	id "com.google.protobuf" version "0.9.4"
 }
 
 group = 'com.strobel.emercast'
@@ -26,10 +27,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation "org.springframework.boot:spring-boot-starter-data-mongodb"
-	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.2.0'
+	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.3.0'
 	implementation 'org.mongodb:mongodb-driver-sync:4.11.1'
 	implementation 'org.mongodb:mongodb-driver-core:4.11.1'
 	implementation 'io.jsonwebtoken:jjwt:0.12.3'
+	implementation 'com.google.protobuf:protobuf-java:3.23.2'
+	protobuf files("api-specs")
 
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
 	implementation 'io.swagger:swagger-annotations:1.6.8'
@@ -63,7 +66,7 @@ openApiGenerate {
 }
 
 compileJava {
-	dependsOn "openApiGenerate"
+	dependsOn ("openApiGenerate", "generateProto")
 }
 
 clean {
@@ -81,6 +84,13 @@ sourceSets {
 		java {
 			srcDirs "src/test/java"
 		}
+	}
+}
+
+protobuf {
+	protoc {
+		// Download from repositories
+		artifact = 'com.google.protobuf:protoc:3.0.0'
 	}
 }
 

@@ -4,6 +4,7 @@ import com.openapi.gen.springboot.dto.AuthorityDTO;
 import com.openapi.gen.springboot.dto.JurisdictionMarkerDTO;
 import com.strobel.emercast.backend.db.models.base.TUID;
 import com.strobel.emercast.backend.db.models.base.UuidEntity;
+import com.strobel.emercast.protobuf.AuthorityPBO;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -223,5 +224,17 @@ public class Authority extends UuidEntity<Authority> {
                 this.getKeyPairValidUntil().getEpochSecond(),
                 this.getPublicKeyBase64()
         );
+    }
+
+    public AuthorityPBO toProtobuf() {
+        return AuthorityPBO.newBuilder()
+                .setId(this.getId().toString())
+                .setCreated(this.getCreated().getEpochSecond())
+                .setCreatedBy(this.getCreatedBy().toString())
+                .setPublicName(this.getPublicName())
+                .addAllJurisdictionMarkers(this.getJurisdictionMarkers().stream().map(JurisdictionMarker::toProtobuf).collect(Collectors.toList()))
+                .setKeyPairValidUntil(this.getKeyPairValidUntil().getEpochSecond())
+                .setPublicKeyBase64(this.getPublicKeyBase64())
+                .build();
     }
 }

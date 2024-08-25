@@ -2,6 +2,7 @@ package com.strobel.emercast.backend.db.models.authority;
 
 import com.openapi.gen.springboot.dto.JurisdictionMarkerDTO;
 import com.strobel.emercast.backend.db.models.enums.JurisdictionMarkerKindEnum;
+import com.strobel.emercast.protobuf.JurisdictionMarkerPBO;
 
 public class JurisdictionMarker {
 
@@ -69,6 +70,15 @@ public class JurisdictionMarker {
                 this.getKind().toOpenAPI(),
                 this.getRadiusMeters().intValue()
         );
+    }
+
+    public JurisdictionMarkerPBO toProtobuf() {
+        return JurisdictionMarkerPBO.newBuilder()
+                .setLatitude(this.getLatitude().floatValue())
+                .setLongitude(this.getLongitude().floatValue())
+                .setKind(this.getKind().name())
+                .setRadiusMeter(this.getRadiusMeters().intValue())
+                .build();
     }
 
     public static JurisdictionMarker fromOpenAPI(JurisdictionMarkerDTO dto) {
