@@ -43,9 +43,9 @@ public class AuthorityController implements AuthorityApi, LoginApi {
     }
 
     @Override
-    public ResponseEntity<GetAuthorityChainHash200Response> getAuthorityChainHash() {
+    public ResponseEntity<GetBroadcastMessageChainHash200Response> getAuthorityChainHash() {
         var hash = authorityService.getAuthorityChainHash();
-        return ResponseEntity.ok(new GetAuthorityChainHash200Response(hash));
+        return ResponseEntity.ok(new GetBroadcastMessageChainHash200Response(hash));
     }
 
     @Override

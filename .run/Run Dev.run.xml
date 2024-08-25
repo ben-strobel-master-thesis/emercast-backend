@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run Dev" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="dev" />
-    <module name="backend.main" />
+    <module name="Emercast_Backend.main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.strobel.emercast.backend.EmercastBackendApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
