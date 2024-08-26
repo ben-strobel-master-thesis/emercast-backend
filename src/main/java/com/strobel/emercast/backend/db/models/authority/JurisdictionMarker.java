@@ -9,8 +9,8 @@ public class JurisdictionMarker {
     public static JurisdictionMarker newCircleMarker(Double latitude, Double longitude, Long radiusMeters) {
         var marker = new JurisdictionMarker();
         marker.latitude = latitude;
-        marker.kind = JurisdictionMarkerKindEnum.CIRCLE;
         marker.longitude = longitude;
+        marker.kind = JurisdictionMarkerKindEnum.CIRCLE;
         marker.radiusMeters = radiusMeters;
         return marker;
     }

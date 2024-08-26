@@ -19,7 +19,6 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         var message = new BroadcastMessage();
         message.setId(new TUID<>(UUID.randomUUID()));
         message.setCreated(Instant.now());
-        message.setModified(Instant.now());
         message.setForwardUntil(Instant.now().plus(2, ChronoUnit.DAYS));
         message.setLatitude(latitude);
         message.setLongitude(longitude);
@@ -37,7 +36,6 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         return message;
     }
     private Instant created;
-    private Instant modified;
     private Boolean systemMessage;
     private Instant forwardUntil;
     private Float latitude;
@@ -74,14 +72,6 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
 
     public void setCreated(Instant created) {
         this.created = created;
-    }
-
-    public Instant getModified() {
-        return modified;
-    }
-
-    public void setModified(Instant modified) {
-        this.modified = modified;
     }
 
     public Instant getForwardUntil() {
@@ -192,7 +182,6 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         return new BroadcastMessageDTO(
             this.getId().toOpenAPI(),
             this.getCreated().getEpochSecond(),
-            this.getModified().getEpochSecond(),
             this.getSystemMessage(),
             this.getForwardUntil().getEpochSecond(),
             this.getLatitude(),
