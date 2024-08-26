@@ -9,13 +9,13 @@ import com.strobel.emercast.backend.services.BroadcastMessageService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class BroadcastMessageController implements BroadcastMessageApi {
@@ -53,17 +53,22 @@ public class BroadcastMessageController implements BroadcastMessageApi {
     }
 
     @Override
-    public ResponseEntity<GetBroadcastMessageChainHash200Response> getBroadcastMessageChainHash() {
-        //TODO
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+    public ResponseEntity<GetBroadcastMessageChainHash200Response> getBroadcastMessageChainHash(
+            @NotNull  @Valid @RequestParam(value = "systemMessage", required = true) Boolean systemMessage
+    ) {
+        return ResponseEntity.ok(new GetBroadcastMessageChainHash200Response(broadcastMessageService.getCurrentChainHash(systemMessage)));
     }
 
     @Override
     public ResponseEntity<List<BroadcastMessageDTO>> getBroadcastMessagesPage(
-            @NotNull @Valid @RequestParam(value = "page", required = true) Integer page,
-            @NotNull  @Valid @RequestParam(value = "pageSize", required = true) Integer pageSize
+            @NotNull  @Valid @RequestParam(value = "page", required = true) Integer page,
+            @NotNull  @Valid @RequestParam(value = "pageSize", required = true) Integer pageSize,
+            @NotNull  @Valid @RequestParam(value = "systemMessage", required = true) Boolean systemMessage
     ) {
-        //TODO
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+        return ResponseEntity.ok(
+                broadcastMessageService.getPaginatedBroadcastMessages(Pageable.ofSize(pageSize).withPage(page), systemMessage)
+                        .stream()
+                        .map(x -> x.toOpenAPI()).collect(Collectors.toList())
+        );
     }
 }

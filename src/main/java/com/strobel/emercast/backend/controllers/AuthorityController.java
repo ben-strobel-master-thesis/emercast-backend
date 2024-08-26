@@ -43,12 +43,6 @@ public class AuthorityController implements AuthorityApi, LoginApi {
     }
 
     @Override
-    public ResponseEntity<GetBroadcastMessageChainHash200Response> getAuthorityChainHash() {
-        var hash = authorityService.getAuthorityChainHash();
-        return ResponseEntity.ok(new GetBroadcastMessageChainHash200Response(hash));
-    }
-
-    @Override
     public ResponseEntity<AuthorityDTO> createNewAuthority( @Valid @RequestBody CreateNewAuthorityRequest createNewAuthorityRequest ){
         var callingAuthority = authorityService.getCallingAuthority();
 
@@ -62,15 +56,6 @@ public class AuthorityController implements AuthorityApi, LoginApi {
         );
 
         return ResponseEntity.ok(authority.toOpenAPI());
-    }
-
-    @Override
-    public ResponseEntity<List<AuthorityDTO>> getAuthorityPage(
-            @NotNull @Valid @RequestParam(value = "page", required = true) Integer page,
-            @NotNull  @Valid @RequestParam(value = "pageSize", required = true) Integer pageSize
-    ) {
-        var list = authorityService.getAuthorityListPage(page, pageSize);
-        return ResponseEntity.ok(list.stream().map(Authority::toOpenAPI).collect(Collectors.toList()));
     }
 
     @Override

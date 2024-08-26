@@ -8,6 +8,7 @@ import com.strobel.emercast.backend.lib.SerializationUtils;
 import com.strobel.emercast.protobuf.SystemBroadcastMessageAuthorityIssuedPayloadPBO;
 import com.strobel.emercast.protobuf.SystemBroadcastMessageAuthorityRevokedPayloadPBO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public class BroadcastMessageService {
@@ -102,5 +104,9 @@ public class BroadcastMessageService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<BroadcastMessage> getPaginatedBroadcastMessages(Pageable pageable, boolean systemMessage) {
+        return broadcastMessageRepository.findByForwardUntilBeforeAndSystemMessageIs(Instant.now(), systemMessage, pageable);
     }
 }

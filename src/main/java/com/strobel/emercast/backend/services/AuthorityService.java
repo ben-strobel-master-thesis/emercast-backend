@@ -177,28 +177,6 @@ public class AuthorityService {
         }
     }
 
-    public List<Authority> getAuthorityListPage(int page, int pageSize) {
-        return authorityRepository.findAllByRevokedIsNull(Pageable.ofSize(pageSize).withPage(page));
-    }
-
-    public String getAuthorityChainHash() {
-        // TODO Persist this to db this / don't recalculate on every request
-        var builder = new StringBuilder();
-        PaginationUtils.doForEveryPagedItem(
-                10,
-                authorityRepository::findAllByRevokedIsNull,
-                item -> builder.append(item.getMessageStringForDigest())
-        );
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-            var messageHash = md.digest(builder.toString().getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(messageHash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public void signBroadcastMessageWithRootCertificate(BroadcastMessage broadcastMessage) {
         var rootAuthority = authorityRepository.findById(new TUID<>(rootAuthorityUuid));
         if(rootAuthority.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
