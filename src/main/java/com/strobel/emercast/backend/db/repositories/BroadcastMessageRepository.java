@@ -24,8 +24,10 @@ public interface BroadcastMessageRepository extends MongoRepository<BroadcastMes
     })
     Optional<BroadcastMessage> findUnderJurisdictionWithYoungestForwardUntil(TUID<Authority> authorityId);
 
+    // If this aggregation gets changed (sort order / which elements are selected) it also needs to be adjusted on the clientside
     @Aggregation(pipeline = {
         "{$match: {forwardUntil: {$lt: ?0}, $or: [{forwardUntilOverride: {$lt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1}}",
+        "{$sort: {created: -1}}",
         "{$group: {_id: {}, issuerSignatureList: {$push: '$issuerSignature'}}}",
         "{$newRoot: {result: {$reduce: {input: '$issuerSignatureList', initialValue: '', in: {$concat: ['$$value', '$$this']}}}}}"
     })
