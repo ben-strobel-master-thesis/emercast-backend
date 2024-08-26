@@ -29,8 +29,10 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         message.setTitle(title);
         message.setMessage(messageContent);
         message.setSystemMessage(false);
+        message.setSystemMessageRegardingAuthority(null);
+        message.setForwardUntilOverride(null);
 
-        // path and creatorSignature must also be set, are set in service that calls this function
+        // issuedAuthorityId, issuerSignature (and systemMessageRegardingAuthority for systemMessages) must also be set, are set in service that calls this function
 
         return message;
     }
@@ -45,16 +47,15 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
     private Integer severity;
     private String title;
     private String message;
-
     private TUID<Authority> issuedAuthorityId;
-
     private String issuerSignature;
+    private TUID<Authority> systemMessageRegardingAuthority;
+    private Instant forwardUntilOverride;
 
     public byte[] getMessageBytesForDigest() {
         var builder = new StringBuilder();
         builder.append(created);
         builder.append(issuedAuthorityId);
-        builder.append(issuerSignature);
         builder.append(systemMessage);
         builder.append(forwardUntil);
         builder.append(latitude);
@@ -169,6 +170,22 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
 
     public void setIssuerSignature(String issuerSignature) {
         this.issuerSignature = issuerSignature;
+    }
+
+    public TUID<Authority> getSystemMessageRegardingAuthority() {
+        return systemMessageRegardingAuthority;
+    }
+
+    public void setSystemMessageRegardingAuthority(TUID<Authority> systemMessageRegardingAuthority) {
+        this.systemMessageRegardingAuthority = systemMessageRegardingAuthority;
+    }
+
+    public Instant getForwardUntilOverride() {
+        return forwardUntilOverride;
+    }
+
+    public void setForwardUntilOverride(Instant forwardUntilOverride) {
+        this.forwardUntilOverride = forwardUntilOverride;
     }
 
     public BroadcastMessageDTO toOpenAPI() {

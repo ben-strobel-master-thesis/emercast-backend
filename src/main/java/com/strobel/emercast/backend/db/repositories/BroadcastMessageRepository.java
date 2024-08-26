@@ -3,10 +3,15 @@ package com.strobel.emercast.backend.db.repositories;
 import com.strobel.emercast.backend.db.models.BroadcastMessage;
 import com.strobel.emercast.backend.db.models.authority.Authority;
 import com.strobel.emercast.backend.db.models.base.TUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,4 +23,18 @@ public interface BroadcastMessageRepository extends MongoRepository<BroadcastMes
             "{$sort: {forwardUntil: -1}}"
     })
     Optional<BroadcastMessage> findUnderJurisdictionWithYoungestForwardUntil(TUID<Authority> authorityId);
+
+    @Aggregation(pipeline = {
+        "{$match: {forwardUntil: {$lt: ?0}, $or: [{forwardUntilOverride: {$lt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1}}",
+        "{$group: {_id: {}, issuerSignatureList: {$push: '$issuerSignature'}}}",
+        "{$newRoot: {result: {$reduce: {input: '$issuerSignatureList', initialValue: '', in: {$concat: ['$$value', '$$this']}}}}}"
+    })
+    String getCurrentChainHashInput(Instant now, boolean systemMessage);
+
+    @Query("{forwardUntil: {$lt: ?0}, $or: [{forwardUntilOverride: {$lt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1, }")
+    List<BroadcastMessage> findByForwardUntilBeforeAndSystemMessageIs(Instant now, boolean systemMessage, Pageable pageable);
+
+    @Query("{systemMessageRegardingAuthority: ?0, forwardUntil: {$gt: ?2}, title: ?1, systemMessage: true}")
+    @Update("{$set: {forwardUntilOverride: ?2}}")
+    void setForwardUntilOverrideForSystemMessagesRegardingAuthorityWithTitle(TUID<Authority> authorityId, String titleFilter, Instant newForwardUntil);
 }

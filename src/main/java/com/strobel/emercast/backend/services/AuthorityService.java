@@ -222,12 +222,12 @@ public class AuthorityService {
 
     public void signBroadcastMessage(Authority authority, BroadcastMessage broadcastMessage) {
         try {
+            broadcastMessage.setIssuedAuthorityId(authority.getId());
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             var messageHash = md.digest(broadcastMessage.getMessageBytesForDigest());
             var cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, authority.getPrivateKey());
             byte[] signedMessageHash = cipher.doFinal(messageHash);
-            broadcastMessage.setIssuedAuthorityId(authority.getId());
             broadcastMessage.setIssuerSignature(Base64.getEncoder().encodeToString(signedMessageHash));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
             throw new RuntimeException(e);

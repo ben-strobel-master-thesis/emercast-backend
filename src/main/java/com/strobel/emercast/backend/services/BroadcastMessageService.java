@@ -12,7 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 
 @Service
 public class BroadcastMessageService {
@@ -55,9 +60,14 @@ public class BroadcastMessageService {
                 SystemMessageKindEnum.AUTHORITY_REVOKED.name(),
                 SerializationUtils.toBase64String(payload)
         );
+        message.setSystemMessageRegardingAuthority(authority.getId());
+        message.setForwardUntil(Instant.now().plus(1000*365, ChronoUnit.DAYS));
         message.setSystemMessage(true);
         authorityService.signBroadcastMessageWithRootCertificate(message);
-        this.broadcastMessageRepository.save(message);
+
+        broadcastMessageRepository.setForwardUntilOverrideForSystemMessagesRegardingAuthorityWithTitle(authority.getId(), SystemMessageKindEnum.AUTHORITY_ISSUED.name(), canBeDeletedFrom);
+
+        broadcastMessageRepository.save(message);
         cloudMessagingService.sendCloudMessagingMessage(message);
         return message;
     }
@@ -75,10 +85,22 @@ public class BroadcastMessageService {
                 SystemMessageKindEnum.AUTHORITY_ISSUED.name(),
                 SerializationUtils.toBase64String(payload)
         );
+        message.setSystemMessageRegardingAuthority(authority.getId());
+        message.setForwardUntil(Instant.now().plus(1000*365, ChronoUnit.DAYS));
         message.setSystemMessage(true);
         authorityService.signBroadcastMessageWithRootCertificate(message);
         this.broadcastMessageRepository.save(message);
         cloudMessagingService.sendCloudMessagingMessage(message);
         return message;
+    }
+
+    public String getCurrentChainHash(boolean systemMessage) {
+        var chainHashInput = broadcastMessageRepository.getCurrentChainHashInput(Instant.now(), systemMessage);
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            return Base64.getEncoder().encodeToString(md.digest(chainHashInput.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
