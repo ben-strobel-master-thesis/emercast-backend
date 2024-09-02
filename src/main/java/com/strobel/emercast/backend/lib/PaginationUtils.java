@@ -24,7 +24,7 @@ public class PaginationUtils {
         while (lastPageItemCount >= pageSize || first) {
             var items = getRequest.apply(pageable);
             consumer.accept(items);
-            lastPageItemCount = items.toArray().length;
+            lastPageItemCount = items.size();
             pageable = pageable.next();
             first = false;
         }

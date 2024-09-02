@@ -52,10 +52,10 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
 
     public byte[] getMessageBytesForDigest() {
         var builder = new StringBuilder();
-        builder.append(created);
+        builder.append(created.getEpochSecond());
         builder.append(issuedAuthorityId);
         builder.append(systemMessage);
-        builder.append(forwardUntil);
+        builder.append(forwardUntil.getEpochSecond());
         builder.append(latitude);
         builder.append(longitude);
         builder.append(radius);

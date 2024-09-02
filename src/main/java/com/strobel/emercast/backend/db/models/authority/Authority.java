@@ -73,13 +73,14 @@ public class Authority extends UuidEntity<Authority> {
         return getMessageStringForDigest().getBytes(StandardCharsets.UTF_8);
     }
 
+    // TODO This should be extracted into a shared library between server & clients
     public String getMessageStringForDigest() {
         var builder = new StringBuilder();
-        builder.append(created.toString());
+        builder.append(created.getEpochSecond());
         builder.append(createdBy.toString());
         builder.append(publicName);
         jurisdictionMarkers.forEach(m -> builder.append(m.toString()));
-        builder.append(keyPairValidUntil.toString());
+        builder.append(keyPairValidUntil.getEpochSecond());
         builder.append(publicKeyBase64);
         return builder.toString();
     }
