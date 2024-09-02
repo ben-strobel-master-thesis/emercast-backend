@@ -98,6 +98,7 @@ public class BroadcastMessageService {
 
     public String getCurrentChainHash(boolean systemMessage) {
         var chainHashInput = broadcastMessageRepository.getCurrentChainHashInput(Instant.now(), systemMessage);
+        if(chainHashInput == null) chainHashInput = "";
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             return Base64.getEncoder().encodeToString(md.digest(chainHashInput.getBytes(StandardCharsets.UTF_8)));

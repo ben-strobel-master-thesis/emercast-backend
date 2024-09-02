@@ -26,17 +26,17 @@ public interface BroadcastMessageRepository extends MongoRepository<BroadcastMes
 
     // If this aggregation gets changed (sort order / which elements are selected) it also needs to be adjusted on the clientside
     @Aggregation(pipeline = {
-        "{$match: {forwardUntil: {$lt: ?0}, $or: [{forwardUntilOverride: {$lt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1}}",
+        "{$match: {forwardUntil: {$gt: ?0}, $or: [{forwardUntilOverride: {$gt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1}}",
         "{$sort: {created: -1}}",
         "{$group: {_id: {}, issuerSignatureList: {$push: '$issuerSignature'}}}",
-        "{$newRoot: {result: {$reduce: {input: '$issuerSignatureList', initialValue: '', in: {$concat: ['$$value', '$$this']}}}}}"
+        "{$replaceRoot: {newRoot: {result: {$reduce: {input: '$issuerSignatureList', initialValue: '', in: {$concat: ['$$value', '$$this']}}}}}}"
     })
     String getCurrentChainHashInput(Instant now, boolean systemMessage);
 
-    @Query("{forwardUntil: {$lt: ?0}, $or: [{forwardUntilOverride: {$lt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1, }")
+    @Query("{forwardUntil: {$gt: ?0}, $or: [{forwardUntilOverride: {$gt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1, }")
     List<BroadcastMessage> findByForwardUntilBeforeAndSystemMessageIs(Instant now, boolean systemMessage, Pageable pageable);
 
-    @Query("{systemMessageRegardingAuthority: ?0, forwardUntil: {$gt: ?2}, title: ?1, systemMessage: true}")
+    @Query("{systemMessageRegardingAuthority: ?0, forwardUntil: {$lt: ?2}, forwardUntilOverride: {$exists: false}, title: ?1, systemMessage: true}")
     @Update("{$set: {forwardUntilOverride: ?2}}")
     void setForwardUntilOverrideForSystemMessagesRegardingAuthorityWithTitle(TUID<Authority> authorityId, String titleFilter, Instant newForwardUntil);
 }
