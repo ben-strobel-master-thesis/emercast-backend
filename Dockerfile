@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM gradle:latest AS build
+FROM --platform=$BUILDPLATFORM gradle:jdk17 AS build
 WORKDIR /build
 COPY . .
 RUN gradle wrapper
