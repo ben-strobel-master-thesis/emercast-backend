@@ -26,4 +26,10 @@ public interface AuthorityRepository extends MongoRepository<Authority, TUID<Aut
     List<Authority> findAllByRevokedIsNull(Pageable pageable);
 
     Optional<Authority> findByKeyPairValidUntilBefore(Instant timestamp);
+
+    @Aggregation(pipeline = {
+            "{$match: {$or: [{$eq: ['revoked', null]}, {'revoked': {$gt: ?0}}]}}",
+            "{$sort: { 'created': 1 }}"
+    })
+    List<Authority> getAuthoritiesPage(Instant now, Pageable pageable);
 }

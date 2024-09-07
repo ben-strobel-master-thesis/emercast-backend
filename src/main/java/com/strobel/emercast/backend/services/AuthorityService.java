@@ -69,6 +69,10 @@ public class AuthorityService {
         );
     }
 
+    public List<Authority> getAuthorityPage(Pageable pageable) {
+        return authorityRepository.getAuthoritiesPage(Instant.now(), pageable);
+    }
+
     public Authority createAuthority(
             String loginName,
             String password,

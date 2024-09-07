@@ -33,7 +33,7 @@ public interface BroadcastMessageRepository extends MongoRepository<BroadcastMes
     })
     String getCurrentChainHashInput(Instant now, boolean systemMessage);
 
-    @Query("{forwardUntil: {$gt: ?0}, $or: [{forwardUntilOverride: {$gt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1, }")
+    @Query(value = "{forwardUntil: {$gt: ?0}, $or: [{forwardUntilOverride: {$gt: ?0}}, {forwardUntilOverride: null}], systemMessage: ?1, }", sort = "{created: -1}")
     List<BroadcastMessage> findByForwardUntilBeforeAndSystemMessageIs(Instant now, boolean systemMessage, Pageable pageable);
 
     @Query("{systemMessageRegardingAuthority: ?0, forwardUntil: {$lt: ?2}, forwardUntilOverride: {$exists: false}, title: ?1, systemMessage: true}")
