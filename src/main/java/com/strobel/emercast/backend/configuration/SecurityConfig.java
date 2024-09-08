@@ -52,7 +52,7 @@ public class SecurityConfig {
                 })
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .requestMatchers(HttpMethod.GET,  "/authority/hash", "/authority").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/authority/hash", "/authority", "authorities").permitAll()
                         .requestMatchers(HttpMethod.GET, "/broadcastMessage", "/broadcastMessage/hash").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, SecurityContextPersistenceFilter.class)

@@ -68,8 +68,6 @@ public class AuthorityController implements AuthorityApi, AuthoritiesApi, LoginA
             @NotNull  @Valid @Min(0) @RequestParam(value = "page", required = true) Integer page,
             @NotNull  @Valid @Max(20) @RequestParam(value = "pageSize", required = true) Integer pageSize
     ) {
-        var callingAuthority = authorityService.getCallingAuthority();
-
         return ResponseEntity.ok(authorityService.getAuthorityPage(Pageable.ofSize(pageSize).withPage(page)).stream().map(Authority::toOpenAPI).collect(Collectors.toList()));
     }
 
