@@ -17,7 +17,7 @@ public interface AuthorityRepository extends MongoRepository<Authority, TUID<Aut
 
     @Aggregation(pipeline = {
             "{$match: {'path': ?0}}",
-            "{$match: {$expr:  {$cond: [?1, {$ne: ['$revoked', null]}, {$eq: ['$revoked', null]}]}}}",
+            "{$match: {$expr:  {$cond: [?1, {'revoked': {$ne: null}}, {$eq: ['$revoked', null]}]}}}",
             "{$addFields:  {'pathIndex': {indexOfArray: ['$path', ?0]}}}",
             "{$sort: { 'pathIndex': 1 }}"
     })
@@ -28,7 +28,7 @@ public interface AuthorityRepository extends MongoRepository<Authority, TUID<Aut
     Optional<Authority> findByKeyPairValidUntilBefore(Instant timestamp);
 
     @Aggregation(pipeline = {
-            "{$match: {$or: [{$eq: ['revoked', null]}, {'revoked': {$gt: ?0}}]}}",
+            "{$match: {$or: [{'revoked': {$eq: null}}, {'revoked': {$gt: ?0}}]}}",
             "{$sort: { 'created': 1 }}"
     })
     List<Authority> getAuthoritiesPage(Instant now, Pageable pageable);
