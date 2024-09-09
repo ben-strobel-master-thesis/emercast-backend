@@ -34,9 +34,10 @@ public class BroadcastMessageService {
         this.cloudMessagingService = cloudMessagingService;
     }
 
-    public BroadcastMessage sendPayloadBroadcastMessage(AuthorityService authorityService, Authority authority, Float latitude, Float longitude, Integer radius, String category, Integer severity, String title, String messageContent) {
+    public BroadcastMessage sendPayloadBroadcastMessage(AuthorityService authorityService, Authority authority, Instant forwardUntil, Float latitude, Float longitude, Integer radius, String category, Integer severity, String title, String messageContent) {
         if(messageContent.length() > 4000) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         var message = BroadcastMessage.newInstance(latitude, longitude, radius, category, severity, title, messageContent);
+        message.setForwardUntil(forwardUntil.isAfter(Instant.now().plus(30, ChronoUnit.DAYS)) ? Instant.now().plus(30, ChronoUnit.DAYS) : forwardUntil);
         authorityService.signBroadcastMessage(authority, message);
         this.broadcastMessageRepository.save(message);
         cloudMessagingService.sendCloudMessagingMessage(message);

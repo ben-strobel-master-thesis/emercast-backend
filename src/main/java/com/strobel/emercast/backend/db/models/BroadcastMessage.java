@@ -19,7 +19,7 @@ public class BroadcastMessage extends UuidEntity<BroadcastMessage> {
         var message = new BroadcastMessage();
         message.setId(new TUID<>(UUID.randomUUID()));
         message.setCreated(Instant.now());
-        message.setForwardUntil(Instant.now().plus(2, ChronoUnit.DAYS));
+        message.setForwardUntil(Instant.now().plus(1, ChronoUnit.DAYS));
         message.setLatitude(latitude);
         message.setLongitude(longitude);
         message.setRadius(radius);

@@ -41,6 +41,7 @@ public class BroadcastMessageController implements BroadcastMessageApi {
         var message = this.broadcastMessageService.sendPayloadBroadcastMessage(
           authorityService,
           callingAuthority,
+          postBroadcastMessageRequest.getForwardUntil().toInstant(),
           postBroadcastMessageRequest.getLatitude(),
           postBroadcastMessageRequest.getLongitude(),
           postBroadcastMessageRequest.getRadius(),
