@@ -216,6 +216,10 @@ public class AuthorityService {
         }
     }
 
+    public boolean isRadiusWithinJurisdiction(List<JurisdictionMarker> jurisdictionMarkers, float latitude, float longitude, float radius) {
+
+    }
+
     private void signAuthorityByParent(Authority authority, Authority parent) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
