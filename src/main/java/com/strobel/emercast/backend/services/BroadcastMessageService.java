@@ -2,8 +2,10 @@ package com.strobel.emercast.backend.services;
 
 import com.strobel.emercast.backend.db.models.BroadcastMessage;
 import com.strobel.emercast.backend.db.models.authority.Authority;
+import com.strobel.emercast.backend.db.models.authority.JurisdictionMarker;
 import com.strobel.emercast.backend.db.models.enums.SystemMessageKindEnum;
 import com.strobel.emercast.backend.db.repositories.BroadcastMessageRepository;
+import com.strobel.emercast.backend.lib.LocationUtils;
 import com.strobel.emercast.backend.lib.SerializationUtils;
 import com.strobel.emercast.protobuf.SystemBroadcastMessageAuthorityIssuedPayloadPBO;
 import com.strobel.emercast.protobuf.SystemBroadcastMessageAuthorityRevokedPayloadPBO;
@@ -20,6 +22,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BroadcastMessageService {
@@ -38,6 +41,12 @@ public class BroadcastMessageService {
         if(messageContent.length() > 4000) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         var message = BroadcastMessage.newInstance(latitude, longitude, radius, category, severity, title, messageContent);
         message.setForwardUntil(forwardUntil.isAfter(Instant.now().plus(30, ChronoUnit.DAYS)) ? Instant.now().plus(30, ChronoUnit.DAYS) : forwardUntil);
+
+        var anyNotInJurisdiction = !LocationUtils.isRadiusWithinJurisdiction(authority.getJurisdictionMarkers().stream().map(JurisdictionMarker::toOpenAPI).collect(Collectors.toList()), latitude, longitude, radius);
+        if(anyNotInJurisdiction) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         authorityService.signBroadcastMessage(authority, message);
         this.broadcastMessageRepository.save(message);
         cloudMessagingService.sendCloudMessagingMessage(message);

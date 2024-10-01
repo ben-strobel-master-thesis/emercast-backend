@@ -6,6 +6,7 @@ import com.strobel.emercast.backend.db.models.authority.JurisdictionMarker;
 import com.strobel.emercast.backend.db.models.base.TUID;
 import com.strobel.emercast.backend.db.models.enums.SystemMessageKindEnum;
 import com.strobel.emercast.backend.db.repositories.AuthorityRepository;
+import com.strobel.emercast.backend.lib.LocationUtils;
 import com.strobel.emercast.backend.lib.PaginationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import java.security.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthorityService {
@@ -113,6 +115,12 @@ public class AuthorityService {
 
         var parent = uuid.equals(rootAuthorityUuid) ? Optional.of(authority) : authorityRepository.findById(createdBy);
         if(parent.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        var anyNotInJurisdiction = jurisdictionMarkers.stream().anyMatch(jm -> !LocationUtils.isRadiusWithinJurisdiction(parent.get().getJurisdictionMarkers().stream().map(JurisdictionMarker::toOpenAPI).collect(Collectors.toList()), jm.getLatitude(), jm.getLongitude(), jm.getRadiusMeters()));
+        if(!uuid.equals(rootAuthorityUuid) && anyNotInJurisdiction) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         signAuthorityByParent(authority, parent.get());
 
         authority.setPath(computeAuthorityPath(authority));
@@ -214,10 +222,6 @@ public class AuthorityService {
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public boolean isRadiusWithinJurisdiction(List<JurisdictionMarker> jurisdictionMarkers, float latitude, float longitude, float radius) {
-
     }
 
     private void signAuthorityByParent(Authority authority, Authority parent) {
