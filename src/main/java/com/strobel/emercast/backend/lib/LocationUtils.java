@@ -5,6 +5,7 @@ import org.springframework.data.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class LocationUtils {
 
@@ -31,6 +32,12 @@ public class LocationUtils {
     public static List<Pair<Double, Double>> getSamplesOfCircle(double circleCenterLat, double circleCenterLong, double circleRadius, double maxSampleDistance) {
         List<Pair<Double, Double>> samplePoints = new ArrayList<>();
 
+        doForEachSampleOfCircle(circleCenterLat, circleCenterLong, circleRadius, maxSampleDistance, samplePoints::add);
+
+        return samplePoints;
+    }
+
+    public static void doForEachSampleOfCircle(double circleCenterLat, double circleCenterLong, double circleRadius, double maxSampleDistance, Consumer<Pair<Double, Double>> sampleConsumer) {
         // Convert the latitude and longitude to radians for calculation
         double centerLatRad = Math.toRadians(circleCenterLat);
         double centerLongRad = Math.toRadians(circleCenterLong);
@@ -53,11 +60,10 @@ public class LocationUtils {
                 Pair<Double, Double> samplePoint = calculatePoint(centerLatRad, centerLongRad, currentRadius, theta);
 
                 // Add the sample point to the list
-                samplePoints.add(samplePoint);
+
+                sampleConsumer.accept(samplePoint);
             }
         }
-
-        return samplePoints;
     }
 
     public static boolean isRadiusWithinJurisdiction(List<JurisdictionMarkerDTO> jurisdictionMarkers, double latitude, double longitude, double radius) {

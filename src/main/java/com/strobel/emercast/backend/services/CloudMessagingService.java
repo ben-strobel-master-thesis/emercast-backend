@@ -4,10 +4,21 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.strobel.emercast.backend.db.models.BroadcastMessage;
+import com.strobel.emercast.backend.lib.LocationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CloudMessagingService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CloudMessagingService.class);
+
+    private final double geoAccuracyDegree = 0.1;
+    private final double geoAccuracyMeters = LocationUtils.distance(0, 0, 0, geoAccuracyDegree);
+
     public void sendCloudMessagingMessage(BroadcastMessage broadcastMessage) {
         var firebaseMessaging = FirebaseMessaging.getInstance();
 
@@ -24,16 +35,31 @@ public class CloudMessagingService {
                 .putData("title", broadcastMessage.getTitle())
                 .putData("content", broadcastMessage.getMessage())
                 .putData("issuedAuthorityId", ""+broadcastMessage.getIssuedAuthorityId())
-                .putData("issuerSignature", broadcastMessage.getIssuerSignature())
-                .setTopic("test");
+                .putData("issuerSignature", broadcastMessage.getIssuerSignature());
         if(broadcastMessage.getSystemMessageRegardingAuthority() != null) {
             message = message.putData("systemMessageRegardingAuthority", broadcastMessage.getSystemMessageRegardingAuthority().toString());
         }
 
-        try {
-            firebaseMessaging.send(message.build());
-        } catch (FirebaseMessagingException e) {
-            throw new RuntimeException(e);
-        }
+        var finalMessage = message;
+        LocationUtils.doForEachSampleOfCircle(broadcastMessage.getLatitude(), broadcastMessage.getLongitude(), broadcastMessage.getRadius(), geoAccuracyMeters, (sample) -> {
+            var topic = getTopicNameFromLatLong(sample.getFirst(), sample.getSecond());
+            finalMessage.setTopic(topic);
+
+            try {
+                logger.info("Sending broadcast message {} to topic {}", broadcastMessage.getId(), topic);
+                firebaseMessaging.send(finalMessage.build());
+            } catch (FirebaseMessagingException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public Double roundToNearestPointFive(Double value) {
+        double factor = 1.0/geoAccuracyDegree;
+        return Math.round(value * factor) / factor;
+    }
+
+    public String getTopicNameFromLatLong(Double latitude, Double longitude) {
+        return roundToNearestPointFive(latitude) + "|" + roundToNearestPointFive(longitude);
     }
 }
