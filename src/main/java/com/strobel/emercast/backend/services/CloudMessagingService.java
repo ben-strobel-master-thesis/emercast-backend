@@ -19,6 +19,8 @@ public class CloudMessagingService {
     private final double geoAccuracyDegree = 0.1;
     private final double geoAccuracyMeters = LocationUtils.distance(0, 0, 0, geoAccuracyDegree);
 
+    private final String systemTopic = "system";
+
     public void sendCloudMessagingMessage(BroadcastMessage broadcastMessage) {
         var firebaseMessaging = FirebaseMessaging.getInstance();
 
@@ -41,17 +43,27 @@ public class CloudMessagingService {
         }
 
         var finalMessage = message;
-        LocationUtils.doForEachSampleOfCircle(broadcastMessage.getLatitude(), broadcastMessage.getLongitude(), broadcastMessage.getRadius(), geoAccuracyMeters, (sample) -> {
-            var topic = getTopicNameFromLatLong(sample.getFirst(), sample.getSecond());
-            finalMessage.setTopic(topic);
-
+        if(broadcastMessage.getSystemMessage()) {
+            finalMessage.setTopic(systemTopic);
             try {
-                logger.info("Sending broadcast message {} to topic {}", broadcastMessage.getId(), topic);
+                logger.info("Sending broadcast message {} to topic {}", broadcastMessage.getId(), systemTopic);
                 firebaseMessaging.send(finalMessage.build());
             } catch (FirebaseMessagingException e) {
                 throw new RuntimeException(e);
             }
-        });
+        } else {
+            LocationUtils.doForEachSampleOfCircle(broadcastMessage.getLatitude(), broadcastMessage.getLongitude(), broadcastMessage.getRadius(), geoAccuracyMeters, (sample) -> {
+                var topic = getTopicNameFromLatLong(sample.getFirst(), sample.getSecond());
+                finalMessage.setTopic(topic);
+
+                try {
+                    logger.info("Sending broadcast message {} to topic {}", broadcastMessage.getId(), topic);
+                    firebaseMessaging.send(finalMessage.build());
+                } catch (FirebaseMessagingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
     }
 
     public Double roundToNearestPointFive(Double value) {
@@ -60,6 +72,6 @@ public class CloudMessagingService {
     }
 
     public String getTopicNameFromLatLong(Double latitude, Double longitude) {
-        return roundToNearestPointFive(latitude) + "|" + roundToNearestPointFive(longitude);
+        return roundToNearestPointFive(latitude) + "_" + roundToNearestPointFive(longitude);
     }
 }
